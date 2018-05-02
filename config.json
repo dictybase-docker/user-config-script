@@ -1,0 +1,20 @@
+{
+  "users": {
+    "email": "email",
+    "id": "id",
+    "roles": {
+      "superuser": {
+        "permissions": ["admin", "read", "write"],
+        "resource": "dictybase"
+      },
+      "curator": {
+        "permissions": ["read", "write"],
+        "resource": "dictybase"
+      },
+      "user": {
+        "permissions": ["read"],
+        "resource": "dictybase"
+      }
+    }
+  }
+}
