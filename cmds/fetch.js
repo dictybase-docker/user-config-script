@@ -44,12 +44,19 @@ const getUsers = async (argv, url) => {
 
 // get email and user id, then call next function
 const getUserInfo = (argv, json) => {
-  json.data.forEach(user => {
+  const userData = json.data
+  for (let user of userData) {
     const email = user.attributes.email
     const userId = user.id
     console.log("email:", email, ", id:", userId)
     findRole(argv, "user", `http://${argv.host}/roles`, userId)
-  })
+  }
+  // json.data.forEach(user => {
+  //   const email = user.attributes.email
+  //   const userId = user.id
+  //   console.log("email:", email, ", id:", userId)
+  //   findRole(argv, "user", `http://${argv.host}/roles`, userId)
+  // })
 }
 
 // find the role of user
@@ -58,7 +65,8 @@ const findRole = async (argv, role, url, userId) => {
     res = await fetch(url)
     if (res.ok) {
       json = await res.json()
-      json.data.forEach(item => {
+      const roleData = json.data
+      for (let item of roleData) {
         const role = item.attributes.role
         const roleId = item.id
         if (role === "user") {
@@ -72,7 +80,22 @@ const findRole = async (argv, role, url, userId) => {
           const url = `http://${argv.host}/roles/${roleId}/relationships/users`
           postRole(url, body)
         }
-      })
+      }
+      // json.data.forEach(item => {
+      //   const role = item.attributes.role
+      //   const roleId = item.id
+      //   if (role === "user") {
+      //     const body = {
+      //       data: [
+      //         {
+      //           id: userId
+      //         }
+      //       ]
+      //     }
+      //     const url = `http://${argv.host}/roles/${roleId}/relationships/users`
+      //     postRole(url, body)
+      //   }
+      // })
     } else {
       json = await res.json()
       printError(res, json)

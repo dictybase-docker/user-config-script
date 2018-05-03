@@ -45,16 +45,11 @@ exports.builder = yargs => {
 
 exports.handler = argv => {
   const url = `http://${argv.host}:${argv.port}/permissions`
-  // get current timestamp, otherwise it defaults to 1970
-  const currentTime = new Date()
-  const jsonTime = currentTime.toJSON()
   const body = {
     data: {
       attributes: {
         permission: argv.permission,
         description: argv.description,
-        created_at: jsonTime,
-        updated_at: jsonTime,
         resource: argv.resource
       }
     }
