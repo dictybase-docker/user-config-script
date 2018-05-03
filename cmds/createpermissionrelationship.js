@@ -2,8 +2,7 @@ const fetch = require("node-fetch")
 
 // note: this is currently not working (Unexpected end of JSON input)
 
-exports.command =
-  "createpermissionrelationship [host] [port] [roleid] [permissionid]"
+exports.command = "createpermissionrelationship [host] [roleid] [permissionid]"
 exports.describe = "create permission relationship with role"
 exports.builder = yargs => {
   yargs
@@ -13,12 +12,6 @@ exports.builder = yargs => {
       type: "string",
       default: "betaapi",
       describe: "api server"
-    })
-    .env("USER_API_SERVICE_PORT")
-    .positional("port", {
-      alias: "p",
-      type: "number",
-      describe: "api server port"
     })
     .positional("roleid", {
       alias: "r",
@@ -33,15 +26,13 @@ exports.builder = yargs => {
     .demandOption(["host"])
     .help("h")
     .example(
-      "createpermissionrelationship --host localhost --port 31827 --roleid 1 --permissionid 1"
+      "createpermissionrelationship --host localhost --roleid 1 --permissionid 1"
     )
-    .example("createpermissionrelationship -H localhost -p 31827 -r 1 -P 1")
+    .example("createpermissionrelationship -H localhost -r 1 -P 1")
 }
 
 exports.handler = argv => {
-  const url = `http://${argv.host}:${argv.port}/roles/${
-    argv.roleid
-  }/permissions/permissions`
+  const url = `http://${argv.host}/roles/${argv.roleid}/permissions/permissions`
   const body = {
     data: [
       {
