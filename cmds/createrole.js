@@ -1,6 +1,6 @@
 const fetch = require("node-fetch")
 
-exports.command = "createrole [host] [port] [role] [description]"
+exports.command = "createrole [host] [role] [description]"
 exports.describe = "create user role"
 exports.builder = yargs => {
   yargs
@@ -10,12 +10,6 @@ exports.builder = yargs => {
       type: "string",
       default: "betaapi",
       describe: "api server"
-    })
-    .env("USER_API_SERVICE_PORT")
-    .positional("port", {
-      alias: "p",
-      type: "number",
-      describe: "api server port"
     })
     .positional("role", {
       alias: "r",
@@ -30,13 +24,13 @@ exports.builder = yargs => {
     .demandOption(["host"])
     .help("h")
     .example(
-      'createrole --host localhost --port 31827 --role superuser --description "Total power!"'
+      'createrole --host localhost --role superuser --description "Total power!"'
     )
-    .example('createrole -H localhost -p 31827 -r superuser -d "Total power!"')
+    .example('createrole -H localhost -r superuser -d "Total power!"')
 }
 
 exports.handler = argv => {
-  const url = `http://${argv.host}:${argv.port}/roles`
+  const url = `http://${argv.host}/roles`
   // get current timestamp, otherwise it defaults to 1970
   const currentTime = new Date()
   const jsonTime = currentTime.toJSON()

@@ -1,7 +1,7 @@
 const fetch = require("node-fetch")
 
 exports.command =
-  "createpermission [host] [port] [permission] [description] [resource]"
+  "createpermission [host] [permission] [description] [resource]"
 exports.describe = "create user permission (can be admin, read, write)"
 exports.builder = yargs => {
   yargs
@@ -12,14 +12,8 @@ exports.builder = yargs => {
       default: "betaapi",
       describe: "api server"
     })
-    .env("USER_API_SERVICE_PORT")
-    .positional("port", {
-      alias: "p",
-      type: "number",
-      describe: "api server port"
-    })
     .positional("permission", {
-      alias: "P",
+      alias: "p",
       type: "string",
       describe: "name of user permission"
     })
@@ -36,15 +30,15 @@ exports.builder = yargs => {
     .demandOption(["host"])
     .help("h")
     .example(
-      'createpermission --host localhost --port 31827 --permission admin --description "Total power over all users" --resource dictybase'
+      'createpermission --host localhost --permission admin --description "Total power over all users" --resource dictybase'
     )
     .example(
-      'createpermission -H localhost -p 31827 -P admin -d "Total power over all users" -r dictybase'
+      'createpermission -H localhost -p admin -d "Total power over all users" -r dictybase'
     )
 }
 
 exports.handler = argv => {
-  const url = `http://${argv.host}:${argv.port}/permissions`
+  const url = `http://${argv.host}/permissions`
   const body = {
     data: {
       attributes: {
