@@ -38,7 +38,7 @@ exports.handler = async argv => {
     const config = yaml.safeLoad(fs.readFileSync(argv.config))
     for (const user of config.users) {
       const uendPoint = `${base}/users/email/${user.email}`
-      const uresp = await getUser(uendPoint)
+      const uresp = await getEntry(uendPoint)
       if (uresp.isError()) {
         if (uresp.notFound()) {
           console.warn(`user ${user.email} not found`)
@@ -94,7 +94,7 @@ exports.handler = async argv => {
   }
 }
 
-const getUser = async url => {
+const getEntry = async url => {
   try {
     const res = await fetch(url)
     const json = await res.json()
