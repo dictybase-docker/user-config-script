@@ -1,3 +1,4 @@
+"use strict"
 const fetch = require("node-fetch")
 const yaml = require("js-yaml")
 const fs = require("fs")
@@ -31,67 +32,67 @@ exports.builder = yargs => {
     )
 }
 
-exports.handler = argv =>
-  (async () => {
-    base = `http://${argv.host}:${argv.port}`
-    try {
-      config = yaml.safeLoad(fs.readFileSync(argv.config))
-      for (const user of config.users) {
-        const uendPoint = `${base}/users/email/${user.email}`
-        const uresp = await getUser(uendPoint)
-        if (uresp.isError()) {
-          if (uresp.notFound()) {
-            console.warn(`user ${user.email} not found`)
-            continue
-          }
-          throw new Error(
-            `error in fetching user ${user.email}
+exports.handler = async argv => {
+  const base = `http://${argv.host}:${argv.port}`
+  try {
+    const config = yaml.safeLoad(fs.readFileSync(argv.config))
+    for (const user of config.users) {
+      const uendPoint = `${base}/users/email/${user.email}`
+      const uresp = await getUser(uendPoint)
+      if (uresp.isError()) {
+        if (uresp.notFound()) {
+          console.warn(`user ${user.email} not found`)
+          continue
+        }
+        throw new Error(
+          `error in fetching user ${user.email}
              ${resp.message} ${resp.description}`,
-          )
-        }
-        const presp = await createEntry(
-          `${base}/permissions`,
-          createPermObject(user.role.permission),
         )
-        if (presp.isError()) {
-          throw new Error(
-            `error in creating permission ${user.role.permission.name}
-            ${presp.message} ${presp.description}`,
-          )
-        }
-        const rresp = await createEntry(
-          `${base}/roles`,
-          createRoleWithPerm(user.role, presp.getId()),
-        )
-        if (rresp.isError()) {
-          throw new Error(
-            `error in creating role with permission ${user.role.name}
-            ${rresp.message} ${rresp.description}`,
-          )
-        }
-        const relresp = await createEntry(
-          rresp.getRelationships().users.links.self,
-          {
-            id: rresp.getId(),
-            data: [
-              {
-                id: uresp.getId(),
-                type: "users",
-              },
-            ],
-          },
-        )
-        if (relresp.isError()) {
-          throw new Error(
-            `error in linking role with user ${user.role.name} ${user.email}
-            ${relresp.message} ${relresp.description}`,
-          )
-        }
       }
-    } catch (err) {
-      console.error(err.message)
+      const presp = await createEntry(
+        `${base}/permissions`,
+        createPermObject(user.role.permission),
+      )
+      if (presp.isError()) {
+        throw new Error(
+          `error in creating permission ${user.role.permission.name}
+            ${presp.message} ${presp.description}`,
+        )
+      }
+      const rresp = await createEntry(
+        `${base}/roles`,
+        createRoleWithPerm(user.role, presp.getId()),
+      )
+      if (rresp.isError()) {
+        throw new Error(
+          `error in creating role with permission
+            ${user.role.name} ${rresp.getStatus()}
+            ${rresp.message()} ${rresp.description()}`,
+        )
+      }
+      const relresp = await createEntry(
+        rresp.getRelationships().users.links.self,
+        {
+          id: rresp.getId(),
+          data: [
+            {
+              id: uresp.getId(),
+              type: "users",
+            },
+          ],
+        },
+      )
+      if (relresp.isError()) {
+        throw new Error(
+          `error in linking role with user ${user.role.name} ${user.email}
+            ${relresp.message()} ${relresp.description()}`,
+        )
+      }
     }
-  })()
+  } catch (err) {
+    console.error(err.message)
+  }
+}
 
 const getUser = async url => {
   try {
@@ -114,8 +115,13 @@ const createEntry = async (url, obj) => {
       body: JSON.stringify(obj),
     })
     if (res.ok) {
+      if (res.status == 204) {
+        return new EmptyResponse(res)
+      }
+      const json = await res.json()
       return new JsonAPI(res, json)
     } else {
+      const json = await res.json()
       return new ErrorAPI(res, json)
     }
   } catch (err) {
@@ -153,26 +159,47 @@ const createPermObject = perm => {
   }
 }
 
+class EmptyResponse {
+  constructor(res) {
+    this.res = res
+  }
+  isError() {
+    if (this.res.ok) {
+      return false
+    }
+    return true
+  }
+  isSuccess() {
+    return this.res.ok
+  }
+}
+
 class Response {
   constructor(res, json) {
     this.res = res
     this.json = json
   }
   isError() {
-    !this.res.ok
+    if (this.res.ok) {
+      return false
+    }
+    return true
   }
   isSuccess() {
-    this.res.ok
+    return this.res.ok
   }
   getResponse() {
-    this.res
+    return this.res
   }
   getStatus() {
-    this.res.status
+    return this.res.status
   }
 }
 
 class ErrorAPI extends Response {
+  constructor(res, json) {
+    super(res, json)
+  }
   notFound() {
     if (this.res.status == 404) {
       return true
@@ -180,31 +207,32 @@ class ErrorAPI extends Response {
     return false
   }
   message() {
-    this.json.errors[0].title
+    return this.json.errors[0].title
   }
   description() {
-    this.json.errors[0].detail
+    return this.json.errors[0].detail
   }
 }
 
 class JsonAPI extends Response {
   constructor(res, json) {
+    super(res, json)
     this.res = res
     this.json = json.data
   }
   getAttributes() {
-    this.json.attributes
+    return this.json.attributes
   }
   getType() {
-    this.json.type
+    return this.json.type
   }
   getId() {
-    this.json.id
+    return this.json.id
   }
   getFetchURL() {
-    this.links.self
+    return this.links.self
   }
   getRelationships() {
-    this.relationships
+    return this.json.relationships
   }
 }
