@@ -13,4 +13,7 @@ RUN npm install
 # Bundle app source
 COPY . /app
 
-ENTRYPOINT ["node", "index.js"]
+# Link user-loader command for development
+RUN npm link
+
+ENTRYPOINT ["user-loader"]
