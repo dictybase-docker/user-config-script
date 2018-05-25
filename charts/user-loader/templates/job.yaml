@@ -1,22 +1,22 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ template "user-loader.fullname" . }}
+  name: {{ template "user-config-script.fullname" . }}
   labels:
-    app: {{ template "user-loader.name" . }}
+    app: {{ template "user-config-script.name" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   template:
     metadata:
-      name: {{ template "user-loader.fullname" . }}
+      name: {{ template "user-config-script.fullname" . }}
       labels:
         release: {{ .Release.Name }}
-        app: {{ template "user-loader.name" . }}
+        app: {{ template "user-config-script.name" . }}
     spec:
       containers:
-      - name: {{ template "user-loader.fullname" . }}
+      - name: {{ template "user-config-script.fullname" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         args: ["assign-roles-permissions", "--host", "--port", "--config"]

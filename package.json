@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "bin": {
-    "user-loader": "./index.js"
+    "user-config": "./index.js"
   },
   "dependencies": {
     "js-yaml": "^3.11.0",
