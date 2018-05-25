@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "user-loader.fullname" . }}
+  labels:
+    app: {{ template "user-loader.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      name: {{ template "user-loader.fullname" . }}
+      labels:
+        release: {{ .Release.Name }}
+        app: {{ template "user-loader.name" . }}
+    spec:
+      containers:
+      - name: {{ template "user-loader.fullname" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args: ["assign-roles-permissions", "--host", "--port", "--config"]
+      restartPolicy: Never
+
