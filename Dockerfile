@@ -13,7 +13,7 @@ RUN npm install
 # Bundle app source
 COPY . /app
 
-# Link user-loader command for development
+# Link user-config command for development
 RUN npm link
 
-ENTRYPOINT ["user-loader"]
+ENTRYPOINT ["user-config"]
