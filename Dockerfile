@@ -1,19 +1,14 @@
-FROM node:7
+FROM node:8.11.2-alpine
+LABEL maintainer "Eric Hartline <eric.hartline@northwestern.edu>"
+LABEL maintainer "Siddhartha Basu <siddhartha-basu@northwestern.edu>"
 
-# Create app directory
+RUN mkdir /app
 WORKDIR /app
 
-# Add packages so Docker won't have to install dependencies again
-COPY package.json /app
-COPY package-lock.json /app
+COPY index.js package.json package-lock.json ./
+ADD cmds cmds
 
-# Install necessary packages
-RUN npm install
-
-# Bundle app source
-COPY . /app
-
-# Link user-config command for development
-RUN npm link
+# Install necessary packages and link the runner
+RUN npm install && npm link
 
 ENTRYPOINT ["user-config"]
