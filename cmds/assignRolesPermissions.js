@@ -36,12 +36,31 @@ exports.builder = yargs => {
     .example(
       "assign-roles-permissions --host betaapi.dictybase.local -c config.yaml",
     )
+    .example(
+      "assign-roles-permissions --host betaapi.dictybase.local -s 'yaml content here'",
+    )
 }
 
 exports.handler = async argv => {
   const base = `http://${argv.host}:${argv.port}`
   try {
-    const config = yaml.safeLoad(fs.readFileSync(argv.config))
+    let config
+    // check if configstring exists
+    // if it does, verify it is a string
+    if (
+      argv.configstring !== undefined &&
+      typeof argv.configstring === "string"
+    ) {
+      // set config to match the string passed in as argument
+      config = yaml.safeLoad(argv.configstring)
+    } else if (argv.config !== undefined) {
+      // if config arg exists, read the file and set as config
+      config = yaml.safeLoad(fs.readFileSync(argv.config))
+    } else {
+      // if neither config exists then kill the script
+      process.exit(1)
+    }
+
     for (const user of config.users) {
       const uendPoint = `${base}/users/email/${user.email}`
       const uresp = await getEntry(uendPoint)
