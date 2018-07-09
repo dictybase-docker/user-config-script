@@ -1,17 +1,9 @@
 users:
-  - email: email@email.org
+  - email: crossthebreeze@gmail.com
     role:
-      name: superuser
+      name: test
       description: A role with superpower
       permission:
-        name: admin
+        name: admin2
         resource: dictybase
         description: A permission with administration access
-  - email: email@email.org
-    role:
-      name: curator
-      description: A role for editing specified entries
-      permission:
-        name: write
-        resource: dictybase
-        description: A permission with write access to all dictybase resource

@@ -3,7 +3,8 @@ const fetch = require("node-fetch")
 const yaml = require("js-yaml")
 const fs = require("fs")
 
-exports.command = "assign-roles-permissions [host] [port] [config]"
+exports.command =
+  "assign-roles-permissions [host] [port] [config] [configstring]"
 exports.describe = "assign roles and permissions for a list of users"
 exports.builder = yargs => {
   yargs
@@ -11,31 +12,55 @@ exports.builder = yargs => {
     .positional("host", {
       alias: "H",
       type: "string",
-      describe: "api server host"
+      describe: "api server host",
     })
     .env("USER_API_SERVICE")
     .positional("port", {
       alias: "p",
       type: "string",
       describe: "api server port",
-      default: "80"
+      default: "80",
     })
     .positional("config", {
       alias: "c",
       type: "string",
-      describe: "config file"
+      describe: "config file",
     })
-    .demandOption(["host", "config"])
+    .positional("configstring", {
+      alias: "s",
+      type: "string",
+      describe: "config file in string format",
+    })
+    .demandOption("host")
     .help("h")
     .example(
-      "assign-roles-permissions --host betaapi.dictybase.local -c config.yaml"
+      "assign-roles-permissions --host betaapi.dictybase.local -c config.yaml",
+    )
+    .example(
+      "assign-roles-permissions --host betaapi.dictybase.local -s 'yaml content here'",
     )
 }
 
 exports.handler = async argv => {
   const base = `http://${argv.host}:${argv.port}`
   try {
-    const config = yaml.safeLoad(fs.readFileSync(argv.config))
+    let config
+    // check if configstring exists
+    // if it does, verify it is a string
+    if (
+      argv.configstring !== undefined &&
+      typeof argv.configstring === "string"
+    ) {
+      // set config to match the string passed in as argument
+      config = yaml.safeLoad(argv.configstring)
+    } else if (argv.config !== undefined) {
+      // if config arg exists, read the file and set as config
+      config = yaml.safeLoad(fs.readFileSync(argv.config))
+    } else {
+      // if neither config exists then kill the script
+      process.exit(1)
+    }
+
     for (const user of config.users) {
       const uendPoint = `${base}/users/email/${user.email}`
       const uresp = await getEntry(uendPoint)
@@ -46,28 +71,28 @@ exports.handler = async argv => {
         }
         throw new Error(
           `error in fetching user ${user.email}
-             ${resp.message} ${resp.description}`
+             ${resp.message} ${resp.description}`,
         )
       }
       const presp = await createEntry(
         `${base}/permissions`,
-        createPermObject(user.role.permission)
+        createPermObject(user.role.permission),
       )
       if (presp.isError()) {
         throw new Error(
           `error in creating permission ${user.role.permission.name}
-            ${presp.message} ${presp.description}`
+            ${presp.message} ${presp.description}`,
         )
       }
       const rresp = await createEntry(
         `${base}/roles`,
-        createRoleWithPerm(user.role, presp.getId())
+        createRoleWithPerm(user.role, presp.getId()),
       )
       if (rresp.isError()) {
         throw new Error(
           `error in creating role with permission
             ${user.role.name} ${rresp.getStatus()}
-            ${rresp.message()} ${rresp.description()}`
+            ${rresp.message()} ${rresp.description()}`,
         )
       }
       const relresp = await createEntry(
@@ -77,15 +102,15 @@ exports.handler = async argv => {
           data: [
             {
               id: uresp.getId(),
-              type: "users"
-            }
-          ]
-        }
+              type: "users",
+            },
+          ],
+        },
       )
       if (relresp.isError()) {
         throw new Error(
           `error in linking role with user ${user.role.name} ${user.email}
-            ${relresp.message()} ${relresp.description()}`
+            ${relresp.message()} ${relresp.description()}`,
         )
       }
     }
@@ -112,7 +137,7 @@ const createEntry = async (url, obj) => {
   try {
     const res = await fetch(url, {
       method: "POST",
-      body: JSON.stringify(obj)
+      body: JSON.stringify(obj),
     })
     if (res.ok) {
       if (res.status == 204) {
@@ -135,14 +160,14 @@ const createRoleWithPerm = (role, permid) => {
       type: "roles",
       attributes: {
         role: role.name,
-        description: role.description
+        description: role.description,
       },
       relationships: {
         permissions: {
-          data: [{ type: "permissions", id: permid }]
-        }
-      }
-    }
+          data: [{ type: "permissions", id: permid }],
+        },
+      },
+    },
   }
 }
 
@@ -153,9 +178,9 @@ const createPermObject = perm => {
       attributes: {
         permission: perm.name,
         description: perm.description,
-        resource: perm.resource
-      }
-    }
+        resource: perm.resource,
+      },
+    },
   }
 }
 
