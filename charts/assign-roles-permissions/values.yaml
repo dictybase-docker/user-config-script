@@ -1,0 +1,23 @@
+image:
+  repository: dictybase-playground/assign-roles-permissions
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+#arguments:
+  #config:
+    #users:
+      #- email: email@gmail.com
+        #role:
+          #name: superuser
+          #description: A role with superpower
+          #permission:
+            #name: admin
+            #resource: dictybase
+            #description: A permission with administration access
+      #- email: second@microsoft.com
+        #role:
+          #name: editor
+          #description: A role with editing power
+          #permission:
+            #name: write
+            #resource: genome
+            #description: A permission with write access to genome resource

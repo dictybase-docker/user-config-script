@@ -1,8 +1,0 @@
-image:
-  repository: dictybase-playground/user-config-script
-  tag: 0.1.0
-  pullPolicy: IfNotPresent
-#arguments:
-  #host:
-  #port:
-  #config:

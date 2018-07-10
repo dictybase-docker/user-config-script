@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "assign-roles-permissions.fullname" . }}
+  labels:
+    app: {{ template "assign-roles-permissions.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      name: {{ template "assign-roles-permissions.fullname" . }}
+      labels:
+        release: {{ .Release.Name }}
+        app: {{ template "assign-roles-permissions.name" . }}
+    spec:
+      containers:
+      - name: {{ template "assign-roles-permissions.fullname" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        args: [
+            "assign-roles-permissions", 
+            "--host", 
+            "$(USER_API_SERVICE_HOST)",
+            "--port", 
+            "$(USER_API_SERVICE_PORT)",
+            "--configstring",
+            "{{ .Values.arguments.config }}"
+            ]
+      restartPolicy: Never
+
