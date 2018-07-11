@@ -21,12 +21,28 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         args: [
             "assign-roles-permissions", 
-            "--host", 
+            "--host",
             "$(USER_API_SERVICE_HOST)",
-            "--port", 
+            "--port",
             "$(USER_API_SERVICE_PORT)",
-            "--configstring",
-            "{{ .Values.arguments.config }}"
+            "--phost",
+            "$(PERMISSION_API_SERVICE_HOST)",
+            "--pport",
+            "$(PERMISSION_API_SERVICE_PORT)",
+            "--rhost",
+            "$(ROLE_API_SERVICE_HOST)",
+            "--rport",
+            "$(ROLE_API_SERVICE_PORT)",
+            "--config",
+            "/etc/configfile/user.config"
             ]
+        volumeMounts:
+          - name: config
+            mountPath: "/etc/configfile"
+            readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ template "assign-roles-permissions.name" . }}
       restartPolicy: Never
 
