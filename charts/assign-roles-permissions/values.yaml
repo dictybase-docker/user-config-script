@@ -1,6 +1,6 @@
 image:
   repository: dictybase/assign-role-permission
-  tag: 0.1.0
+  tag: 2.0.0
   pullPolicy: IfNotPresent
 #arguments:
   #config:
