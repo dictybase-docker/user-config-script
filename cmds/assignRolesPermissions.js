@@ -12,14 +12,37 @@ exports.builder = yargs => {
     .positional("host", {
       alias: "H",
       type: "string",
-      describe: "api server host",
+      describe: "user api server host",
     })
     .env("USER_API_SERVICE")
     .positional("port", {
       alias: "p",
       type: "string",
-      describe: "api server port",
-      default: "80",
+      describe: "user api server port",
+    })
+    .env("PERMISSION_API_SERVICE")
+    .positional("phost", {
+      alias: "PH",
+      type: "string",
+      describe: "permission api server host",
+    })
+    .env("PERMISSION_API_SERVICE")
+    .positional("pport", {
+      alias: "pp",
+      type: "string",
+      describe: "permission api server port",
+    })
+    .env("ROLE_API_SERVICE")
+    .positional("rhost", {
+      alias: "RH",
+      type: "string",
+      describe: "role api server host",
+    })
+    .env("ROLE_API_SERVICE")
+    .positional("rport", {
+      alias: "rp",
+      type: "string",
+      describe: "role api server port",
     })
     .positional("config", {
       alias: "c",
@@ -31,18 +54,17 @@ exports.builder = yargs => {
       type: "string",
       describe: "config file in string format",
     })
-    .demandOption("host")
+    .demandOption(["host", "phost", "rhost"])
     .help("h")
     .example(
-      "assign-roles-permissions --host betaapi.dictybase.local -c config.yaml",
-    )
-    .example(
-      "assign-roles-permissions --host betaapi.dictybase.local -s 'yaml content here'",
+      "assign-roles-permissions --host [somehost] --rhost [someotherhost] --phost [anotherhost] -c config.yaml",
     )
 }
 
 exports.handler = async argv => {
   const base = `http://${argv.host}:${argv.port}`
+  const pbase = `http://${argv.phost}:${argv.pport}`
+  const rbase = `http://${argv.rhost}:${argv.rport}`
   try {
     let config
     // check if configstring exists
@@ -71,21 +93,21 @@ exports.handler = async argv => {
         }
         throw new Error(
           `error in fetching user ${user.email}
-             ${resp.message} ${resp.description}`,
+             ${uresp.message()} ${uresp.description()}`,
         )
       }
       const presp = await createEntry(
-        `${base}/permissions`,
+        `${pbase}/permissions`,
         createPermObject(user.role.permission),
       )
       if (presp.isError()) {
         throw new Error(
           `error in creating permission ${user.role.permission.name}
-            ${presp.message} ${presp.description}`,
+            ${presp.message()} ${presp.description()}`,
         )
       }
       const rresp = await createEntry(
-        `${base}/roles`,
+        `${rbase}/roles`,
         createRoleWithPerm(user.role, presp.getId()),
       )
       if (rresp.isError()) {
@@ -96,7 +118,7 @@ exports.handler = async argv => {
         )
       }
       const relresp = await createEntry(
-        rresp.getRelationships().users.links.self,
+        `${rbase}/roles/${rresp.getId()}/relationships/users`,
         {
           id: rresp.getId(),
           data: [
@@ -129,7 +151,7 @@ const getEntry = async url => {
       return new ErrorAPI(res, json)
     }
   } catch (err) {
-    return new Error(err.message)
+    return new SystemError(err.message)
   }
 }
 
@@ -150,7 +172,7 @@ const createEntry = async (url, obj) => {
       return new ErrorAPI(res, json)
     }
   } catch (err) {
-    return new Error(err.message)
+    return new SystemError(err.message)
   }
 }
 
@@ -218,6 +240,27 @@ class Response {
   }
   getStatus() {
     return this.res.status
+  }
+}
+
+class SystemError {
+  constructor(msg) {
+    this.msg = msg
+  }
+  isError() {
+    return true
+  }
+  isSuccess() {
+    return false
+  }
+  message() {
+    return this.msg
+  }
+  description() {
+    return this.msg
+  }
+  notFound() {
+    return false
   }
 }
 
