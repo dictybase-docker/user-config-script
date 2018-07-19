@@ -4,7 +4,7 @@ const yaml = require("js-yaml")
 const fs = require("fs")
 
 exports.command =
-  "assign-roles-permissions [host] [port] [config] [configstring]"
+  "assign-roles-permissions [host] [port] [phost] [pport] [rhost] [rport] [config] [configstring]"
 exports.describe = "assign roles and permissions for a list of users"
 exports.builder = yargs => {
   yargs
