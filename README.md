@@ -18,7 +18,18 @@ user-config -h
 
 ## assign-roles-permissions
 
-The script accepts eight arguments: `assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-PH|--phost <phost>] [-pp|--pport <pport>] [-RH|--rhost <rhost>] [-rp|--rport <rport>] [-c|--config <config>] [-s|--configstring <configstring>`. It takes the specified config file (YAML format) or config string and adds its roles and permissions to the listed users.
+The script accepts eight arguments:
+
+* `[-H|--host <host>]`
+* `[-p|--port <port>]`
+* `[-PH|--phost <phost>]`
+* `[-pp|--pport <pport>]`
+* `[-RH|--rhost <rhost>]`
+* `[-rp|--rport <rport>]`
+* `[-c|--config <config>]`
+* `[-s|--configstring <configstring>`
+
+It takes the specified config file (YAML format) or config string and adds its roles and permissions to the listed users.
 
 To run the script type:
 
