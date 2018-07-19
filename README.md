@@ -18,18 +18,18 @@ user-config -h
 
 ## assign-roles-permissions
 
-The script accepts four arguments: `assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-c|--config <config>] [-s|--configstring <configstring>`. It takes the specified config file (YAML format) or config string and adds its roles and permissions to the listed users.
+The script accepts eight arguments: `assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-PH|--phost <phost>] [-pp|--pport <pport>] [-RH|--rhost <rhost>] [-rp|--rport <rport>] [-c|--config <config>] [-s|--configstring <configstring>`. It takes the specified config file (YAML format) or config string and adds its roles and permissions to the listed users.
 
 To run the script type:
 
 ```
-assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-c|--config <config>]
+assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-PH|--phost <phost>] [-pp|--pport <pport>] [-RH|--rhost <rhost>] [-rp|--rport <rport>] [-c|--config <config>]
 or
-assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-s|--configstring <configstring>]
+assign-roles-permissions [-H|--host <host>] [-p|--port <port>] [-PH|--phost <phost>] [-pp|--pport <pport>] [-RH|--rhost <rhost>] [-rp|--rport <rport>] [-s|--configstring <configstring>]
 ```
 
 Example:
 
 ```
-assign-roles-permissions -H localhost -p 3000 -c config.yaml
+assign-roles-permissions -H localhost -p 3000 -PH localhost -pp 3001 -RH localhost -rp 3002 -c config.yaml
 ```
