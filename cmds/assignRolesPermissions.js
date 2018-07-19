@@ -86,6 +86,8 @@ exports.handler = async argv => {
     for (const user of config.users) {
       const uendPoint = `${base}/users/email/${user.email}`
       const uresp = await getEntry(uendPoint)
+      let rresp, fetchedId
+
       if (uresp.isError()) {
         if (uresp.notFound()) {
           console.warn(`user ${user.email} not found`)
@@ -96,17 +98,35 @@ exports.handler = async argv => {
              ${uresp.message()} ${uresp.description()}`,
         )
       }
+      const pfetch = await getEntry(`${pbase}/permissions`)
+      for (const perms of pfetch.json) {
+        if (perms.attributes.permission === user.role.permission.name) {
+          console.log(`
+          permission ${user.role.permission.name} already exists
+          `)
+          fetchedId = perms.id
+          rresp = await createEntry(
+            `${rbase}/roles`,
+            createRoleWithPerm(user.role, fetchedId),
+          )
+        }
+      }
       const presp = await createEntry(
         `${pbase}/permissions`,
         createPermObject(user.role.permission),
       )
       if (presp.isError()) {
-        throw new Error(
-          `error in creating permission ${user.role.permission.name}
-            ${presp.message()} ${presp.description()}`,
-        )
+        // throw new Error(
+        //   `error in creating permission ${user.role.permission.name}
+        //     ${presp.message()} ${presp.description()}`,
+        // )
+        console.log(`
+        error in creating permission ${user.role.permission.name}
+        ${presp.message()}
+        ${presp.description()}
+        `)
       }
-      const rresp = await createEntry(
+      rresp = await createEntry(
         `${rbase}/roles`,
         createRoleWithPerm(user.role, presp.getId()),
       )
