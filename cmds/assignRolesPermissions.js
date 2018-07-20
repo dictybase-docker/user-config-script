@@ -83,6 +83,9 @@ exports.handler = async argv => {
       process.exit(1)
     }
 
+    // currently this creates duplicate roles if multiple users have the same role in the config
+    // however, duplicate perms are not created
+
     for (const user of config.users) {
       const uendPoint = `${base}/users/email/${user.email}`
       const uresp = await getEntry(uendPoint)
@@ -103,18 +106,17 @@ exports.handler = async argv => {
 
       // create new array of fetched permissions with relevant info
       const fetchedPerms = pfetch.json.map(item => {
-        return [item.attributes.permission, item.id]
+        return [item.attributes.permission, item.id, item.attributes.resource]
       })
 
       // if perm exists, store it in variable
       const foundPerm = fetchedPerms.find(
-        item => item[0] === user.role.permission.name,
+        item =>
+          item[0] === user.role.permission.name &&
+          item[2] === user.role.permission.resource,
       )
 
       if (foundPerm) {
-        console.log(`
-        ${user.role.permission.name} already exists
-        `)
         fetchedId = foundPerm[1]
         rresp = await createEntry(
           `${rbase}/roles`,
