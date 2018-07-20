@@ -86,7 +86,7 @@ exports.handler = async argv => {
     for (const user of config.users) {
       const uendPoint = `${base}/users/email/${user.email}`
       const uresp = await getEntry(uendPoint)
-      let rresp, fetchedId
+      let rresp, fetchedId, relresp
 
       if (uresp.isError()) {
         if (uresp.notFound()) {
@@ -98,62 +98,93 @@ exports.handler = async argv => {
              ${uresp.message()} ${uresp.description()}`,
         )
       }
+      // get all existing permissions
       const pfetch = await getEntry(`${pbase}/permissions`)
-      for (const perms of pfetch.json) {
-        if (perms.attributes.permission === user.role.permission.name) {
-          console.log(`
-          permission ${user.role.permission.name} already exists
-          `)
-          fetchedId = perms.id
-          rresp = await createEntry(
-            `${rbase}/roles`,
-            createRoleWithPerm(user.role, fetchedId),
+
+      // create new array of fetched permissions with relevant info
+      const fetchedPerms = pfetch.json.map(item => {
+        return [item.attributes.permission, item.id]
+      })
+
+      // if perm exists, store it in variable
+      const foundPerm = fetchedPerms.find(
+        item => item[0] === user.role.permission.name,
+      )
+
+      if (foundPerm) {
+        console.log(`
+        ${user.role.permission.name} already exists
+        `)
+        fetchedId = foundPerm[1]
+        rresp = await createEntry(
+          `${rbase}/roles`,
+          createRoleWithPerm(user.role, fetchedId),
+        )
+        if (rresp.isError()) {
+          throw new Error(
+            `error in creating role with permission
+              ${user.role.name} ${rresp.getStatus()}
+              ${rresp.message()} ${rresp.description()}`,
           )
         }
-      }
-      const presp = await createEntry(
-        `${pbase}/permissions`,
-        createPermObject(user.role.permission),
-      )
-      if (presp.isError()) {
-        // throw new Error(
-        //   `error in creating permission ${user.role.permission.name}
-        //     ${presp.message()} ${presp.description()}`,
-        // )
-        console.log(`
-        error in creating permission ${user.role.permission.name}
-        ${presp.message()}
-        ${presp.description()}
-        `)
-      }
-      rresp = await createEntry(
-        `${rbase}/roles`,
-        createRoleWithPerm(user.role, presp.getId()),
-      )
-      if (rresp.isError()) {
-        throw new Error(
-          `error in creating role with permission
-            ${user.role.name} ${rresp.getStatus()}
-            ${rresp.message()} ${rresp.description()}`,
+        relresp = await createEntry(
+          `${rbase}/roles/${rresp.getId()}/relationships/users`,
+          {
+            id: rresp.getId(),
+            data: [
+              {
+                id: uresp.getId(),
+                type: "users",
+              },
+            ],
+          },
         )
-      }
-      const relresp = await createEntry(
-        `${rbase}/roles/${rresp.getId()}/relationships/users`,
-        {
-          id: rresp.getId(),
-          data: [
-            {
-              id: uresp.getId(),
-              type: "users",
-            },
-          ],
-        },
-      )
-      if (relresp.isError()) {
-        throw new Error(
-          `error in linking role with user ${user.role.name} ${user.email}
-            ${relresp.message()} ${relresp.description()}`,
+        if (relresp.isError()) {
+          throw new Error(
+            `error in linking role with user ${user.role.name} ${user.email}
+              ${relresp.message()} ${relresp.description()}`,
+          )
+        }
+      } else {
+        const presp = await createEntry(
+          `${pbase}/permissions`,
+          createPermObject(user.role.permission),
         )
+        if (presp.isError()) {
+          throw new Error(
+            `error in creating permission ${user.role.permission.name}
+              ${presp.message()} ${presp.description()}`,
+          )
+        }
+        rresp = await createEntry(
+          `${rbase}/roles`,
+          createRoleWithPerm(user.role, presp.getId()),
+        )
+        if (rresp.isError()) {
+          throw new Error(
+            `error in creating role with permission
+              ${user.role.name} ${rresp.getStatus()}
+              ${rresp.message()} ${rresp.description()}`,
+          )
+        }
+        relresp = await createEntry(
+          `${rbase}/roles/${rresp.getId()}/relationships/users`,
+          {
+            id: rresp.getId(),
+            data: [
+              {
+                id: uresp.getId(),
+                type: "users",
+              },
+            ],
+          },
+        )
+        if (relresp.isError()) {
+          throw new Error(
+            `error in linking role with user ${user.role.name} ${user.email}
+              ${relresp.message()} ${relresp.description()}`,
+          )
+        }
       }
     }
   } catch (err) {
